@@ -1,0 +1,15 @@
+Package: corihw
+Type: Package
+Title: Independent Hypothesis Weighting for Correlated Tests
+Version: 0.1.0
+Authoers@R: (person("Yair", "Goldberg", email = "yair.goldy@gmail.com", role = c("aut", "cre")
+Author: Yair Goldberg [aut, cre]
+Maintainer: Yair Goldberg <yair.goldy@gmail.com>
+Description: This package generalizes independent hypothesis weighting (IHW)  multiple testing
+    procedure to correlated tests. It enavle to use covarites that are informative
+    under the alternative to increases power when the tests are correlated.
+Depends: R (>= 3.3.0)
+License: Artistic-2.0
+LazyData: true
+Imports: methods, tidyverse, dplyr, tibble, Matrix, nloptr, IHW, slam, rARPACK,lpsymphony, fdrtool
+RoxygenNote: 6.0.1
