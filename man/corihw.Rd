@@ -6,8 +6,7 @@
 \usage{
 corihw(pvalues, covariates, alpha, nbins = "auto", quiet = TRUE,
   nfolds = 5, lambda = 1, seed = 1L, Sigma = NULL,
-  bound3_testing = TRUE, bound3_linear_testing = TRUE,
-  meffective_testing = TRUE, IHW_testing = TRUE)
+  methods = "CorIHW", linear_approx = TRUE)
 }
 \arguments{
 \item{pvalues}{Numeric vector of unadjusted p-values.}
@@ -31,13 +30,9 @@ the seed of the random number generator is set to this value at the start of the
 
 \item{Sigma}{A sparse mxm corrolation matrix}
 
-\item{bound3_testing}{Flag to perform IHW with correlation}
+\item{methods}{a vector that includes at least one of "IHW", CorIHW", or "M-effective"}
 
-\item{bound3_linear_testing}{Flag to perform IHW with correlation using linear approximation.}
-
-\item{meffective_testing}{Flag to perform IHW with correlation using m effective}
-
-\item{IHW_testing}{Flag to perform IHW with no correlation}
+\item{linear_approx}{A flag to perform CorIHW using linear approximation. This is a much faster procedure which yields similar results.}
 }
 \value{
 A data frame with the weights and a rejection flag per observation

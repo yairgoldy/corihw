@@ -11,5 +11,5 @@ Description: This package generalizes independent hypothesis weighting (IHW)  mu
 Depends: R (>= 3.3.0)
 License: Artistic-2.0
 LazyData: true
-Imports: methods, tidyverse, dplyr, tibble, Matrix, nloptr, IHW, slam, rARPACK,lpsymphony, fdrtool
-RoxygenNote: 6.0.1
+Imports: methods, tidyr, dplyr, tibble, Matrix, nloptr, IHW, slam, matrixTests, mvtnorm, rARPACK,lpsymphony, fdrtool
+RoxygenNote: 6.1.1

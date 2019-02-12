@@ -17,17 +17,15 @@
 #' @param seed Integer or NULL. Split of hypotheses into folds is done randomly. To have the output of the function be reproducible,
 #'	the seed of the random number generator is set to this value at the start of the function. Use NULL if you don't want to set the seed.
 #' @param Sigma   A sparse mxm corrolation matrix
-#' @param bound3_testing Flag to perform IHW with correlation
-#' @param bound3_linear_testing Flag to perform IHW with correlation using linear approximation.
-#' @param meffective_testing Flag to perform IHW with correlation using m effective
-#' @param IHW_testing Flag to perform IHW with no correlation
-#'
-#'
+#' @param methods a vector that includes at least one of "IHW", CorIHW", or "M-effective"
+#' @param linear_approx A flag to perform CorIHW using linear approximation. This is a much faster procedure which yields similar results.
 #'
 #' @return A data frame with the weights and a rejection flag per observation
 #'
-#' @import tidyverse
 #' @import IHW
+#' @import dplyr
+#' @import tibble
+#' @import tidyr
 #' @importFrom stats approxfun pnorm qnorm runif uniroot
 #' @export
 corihw <- function(pvalues, covariates,alpha,
@@ -37,15 +35,33 @@ corihw <- function(pvalues, covariates,alpha,
                    lambda = 1,
                    seed = 1L,
                    Sigma= NULL,
-                   bound3_testing = TRUE,
-                   bound3_linear_testing = TRUE,
-                   meffective_testing = TRUE,
-                   IHW_testing = TRUE){
+                   methods = "CorIHW",
+                   linear_approx = TRUE){
 
+   if("CorIHW"%in% methods){
+    if(linear_approx){
+      bound3_linear_testing <- TRUE
+      bound3_testing <- FALSE
+    } else {
+      bound3_testing <- TRUE
+      bound3_linear_testing <- FALSE
+
+    }
+  }
+  if("IHW"%in% methods){
+    IHW_testing <- TRUE
+  } else {
+    IHW_testing <- FALSE
+  }
+  if("M-effective"%in% methods){
+    meffective_testing <- TRUE
+  } else {
+    meffective_testing <- FALSE
+  }
 
   # Create the main table
-  dat <- tibble(id=1:length(pvalues),pvalues,covariates)
-  dat <-  drop_na(dat)
+  dat <- tibble::tibble(id=1:length(pvalues),pvalues,covariates)
+  dat <-  tidyr::drop_na(dat)
   dat <- mutate(dat,r_pvalues= ifelse(pvalues > 10^(-20), pvalues, 0))
 
 
@@ -55,7 +71,7 @@ corihw <- function(pvalues, covariates,alpha,
   if(is.null(Sigma)){
     message("No correlation matrix. Return IHW solution")
     sol <- IHW::ihw (dat$pvalues,dat$covariates,alpha=alpha,distrib_estimator = "grenander",adjustment_type = "bonferroni",
-                     covariate_type = covariate_type, nbins = nbins, m_groups = NULL,quiet =quiet,
+                     covariate_type = "ordinal", nbins = nbins, m_groups = NULL,quiet =quiet,
                      nfolds = nfolds, lambdas = lambda, seed = seed)
     dat <- as_tibble(sol@df) %>%
       mutate(id=1:n()) %>%
@@ -64,8 +80,10 @@ corihw <- function(pvalues, covariates,alpha,
     return(dat)
   }
 
+
+
   if(all(!bound3_testing,!bound3_linear_testing,!meffective_testing,!IHW_testing)){
-    stop("Need to choose at least one testing methods out of: bound3_testing, bound3_linear_testing, meffective_testing, IHW_testing.")
+    stop("Need to choose at least one testing methods: IHW, CorIHW, or M-effective.")
   }
 
   # Split to groups
@@ -116,7 +134,7 @@ corihw <- function(pvalues, covariates,alpha,
       fbound <- bound3(Sigma,m)
       ts <- uniroot(function(x){fbound(x)-alpha}, c(0, alpha),tol=10^(-9))$root
       if(bound3_testing)       dat <- mutate(dat,Cor=ts)
-      if(bound3_linear_testing)dat <- mutate(dat,CorLinear=ts)
+      if(bound3_linear_testing)dat <- mutate(dat,Cor=ts)
     }
     if(meffective_testing){
       meffective <- calc_m_effecitve(Sigma)
@@ -142,7 +160,7 @@ corihw <- function(pvalues, covariates,alpha,
     dat_ts <- expand.grid(1:nfolds,levels(dat$groups)) %>% as_tibble()
     colnames(dat_ts) <- c("folds","groups")
     if(bound3_testing) dat_ts <- mutate(dat_ts,Cor=0)
-    if(bound3_linear_testing) dat_ts <- mutate(dat_ts,CorLinear=0)
+    if(bound3_linear_testing) dat_ts <- mutate(dat_ts,Cor=0)
     if(meffective_testing) dat_ts <- mutate(dat_ts,meffective=0)
     if(IHW_testing) dat_ts <- mutate(dat_ts,IHW=0)
     dat_ts <-  arrange(dat_ts,folds,groups)
@@ -164,7 +182,7 @@ corihw <- function(pvalues, covariates,alpha,
                             bound3_testing=bound3_testing,bound3_linear_testing=bound3_linear_testing,
                             meffective_testing=meffective_testing,IHW_testing=IHW_testing)
       if(bound3_testing) dat_ts$Cor[dat_ts$folds==i] <- tsi$Cor
-      if(bound3_linear_testing) dat_ts$CorLinear[dat_ts$folds==i] <- tsi$CorLinear
+      if(bound3_linear_testing) dat_ts$Cor[dat_ts$folds==i] <- tsi$Cor
       if(meffective_testing) dat_ts$meffective[dat_ts$folds==i] <- tsi$meffective
       if(IHW_testing)  dat_ts$IHW[dat_ts$folds==i] <- tsi$IHW
 
@@ -175,7 +193,7 @@ corihw <- function(pvalues, covariates,alpha,
     dat <- inner_join(dat,dat_ts, by=c("folds","groups"))
   }
   if(bound3_testing) dat <- mutate(dat,rjs_Cor=r_pvalues<Cor)
-  if(bound3_linear_testing) dat <- mutate(dat,rjs_CorLinear=r_pvalues<CorLinear)
+  if(bound3_linear_testing) dat <- mutate(dat,rjs_Cor=r_pvalues<Cor)
   if(meffective_testing) dat <- mutate(dat,rjs_meffective=r_pvalues<meffective)
   if(IHW_testing) dat <- mutate(dat,rjs_IHW=r_pvalues<IHW)
   dat <- select(dat, - r_pvalues)
@@ -243,7 +261,7 @@ ihw_cor_convex <- function(dat,training_indices,penalty="total variation", lambd
                                            max = TRUE, verbosity = -2, first_feasible = FALSE)
 
     if(bound3_linear_testing){
-      sol <-cbind(sol,CorLinear=res$solution[ts_indices])
+      sol <-cbind(sol,Cor=res$solution[ts_indices])
     }
 
     if(bound3_testing){
@@ -279,7 +297,7 @@ ihw_cor_convex <- function(dat,training_indices,penalty="total variation", lambd
 
       # create one function out of all constraints that returns a vector of length nconstraints+1 (for the fwer constraint)
       constr_fun <- function(v){lapply(fun_list,function(x)do.call(x,list(v))) %>%  unlist()}
-      print(res)
+
       if(!quiet) message("Start non-linear optimization")
       if(!quiet) message(paste("(LINEAR) Constraint: max (should be zero):",max(constr_fun(res$solution)),"max at constr:",
                                which.max(constr_fun(res$solution)),"out of ",nrow(constr_sparse_matrix)))
@@ -294,7 +312,7 @@ ihw_cor_convex <- function(dat,training_indices,penalty="total variation", lambd
       sol <-cbind(sol,Cor=res$solution[ts_indices])
       if(!quiet) message(paste("Constraint: max (should be zero):",max(constr_fun(res$solution)),"max at constr:",
                                which.max(constr_fun(res$solution)),"out of ",nrow(constr_sparse_matrix)))
-      print(res)
+
     }
 
   }

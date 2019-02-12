@@ -36,7 +36,7 @@ bound3 <- function(Sigma,m=NULL,m_block=100){
   if(m_block>=m) m_block <- m
 
   # Calculate number of blocks on the diagonal
-  nsubmats <-ceiling(m/m_block)
+  nsubmats <- ceiling(m/m_block)
 
   # Create a table of the blocks (blks) and their indices (inds)
   subinds <- tibble(blks=1:nsubmats) %>% rowwise() %>%
@@ -109,9 +109,9 @@ bound3 <- function(Sigma,m=NULL,m_block=100){
   return(approxfun(bounds$alpha,bounds$bound,method = "linear"))
 }
 
-#' @import Matrix
+#' @importFrom Matrix Matrix triu
 #' @import tibble
-#' @import tidyverse
+#' @import dplyr
 bound3_matcount <- function(rho_pairs,rho_triples,Sigma,m,diff){
 
   if(m<3){

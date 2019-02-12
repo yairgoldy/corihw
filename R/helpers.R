@@ -54,6 +54,8 @@ prepare_dat <- function(){
   return(dat)
 }
 
+
+#' @importFrom Matrix Matrix sparseMatrix
 as.sparseMatrix <- function(simple_triplet_matrix_sparse) {
   retval <-  sparseMatrix(i=as.numeric(simple_triplet_matrix_sparse$i),
                           j=as.numeric(simple_triplet_matrix_sparse$j),
@@ -366,7 +368,7 @@ linear_constraints <- function(dat,training_indices,lambda,m,m_groups,nbins,pena
   return(list(constr_matrix=constr_matrix,rhs=rhs,obj=obj))
 }
 
-#' @import tidyverse
+
 fwer_lin_constr <- function(funs,alpha,const=2){
   nbins <- nrow(funs)
   m <- sum(funs$ms)
