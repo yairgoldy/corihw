@@ -38,26 +38,16 @@ corihw <- function(pvalues, covariates,alpha,
                    methods = "CorIHW",
                    linear_approx = TRUE){
 
-   if("CorIHW"%in% methods){
-    if(linear_approx){
-      bound3_linear_testing <- TRUE
-      bound3_testing <- FALSE
-    } else {
-      bound3_testing <- TRUE
-      bound3_linear_testing <- FALSE
+  bound3_linear_testing <- FALSE
+  bound3_testing <- FALSE
+  IHW_testing <- FALSE
+  meffective_testing <- FALSE
 
-    }
-  }
-  if("IHW"%in% methods){
-    IHW_testing <- TRUE
-  } else {
-    IHW_testing <- FALSE
-  }
-  if("M-effective"%in% methods){
-    meffective_testing <- TRUE
-  } else {
-    meffective_testing <- FALSE
-  }
+  if("CorIHW"%in% methods && linear_approx == T) bound3_linear_testing <- TRUE
+  if("CorIHW"%in% methods && linear_approx == F) bound3_testing <- TRUE
+
+  if("IHW"%in% methods) IHW_testing <- TRUE
+  if("M-effective"%in% methods) meffective_testing <- TRUE
 
   # Create the main table
   dat <- tibble::tibble(id=1:length(pvalues),pvalues,covariates)
