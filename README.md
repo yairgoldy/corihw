@@ -7,10 +7,13 @@
 
 #### Installation
 
-You can install it from its [GitHub repository](https://github.com/yairgoldy/corihw). You first need to install the [devtools](https://github.com/hadley/devtools) package.
+You can install it from its [GitHub repository](https://github.com/yairgoldy/corihw). You first need to install the [devtools](https://github.com/hadley/devtools) package and [IHW](http://bioconductor.org/packages/release/bioc/html/IHW.html) package.
 
 ```r
 install.packages("devtools")
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("IHW")
 ```
 
 Then install R/corihw using the `install_github` function in the
