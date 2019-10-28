@@ -101,9 +101,10 @@ linear_constraints <- function(dat,training_indices,lambda,m,m_groups,nbins,pena
   grenander_list  <- dplyr::filter(dat,training_indices) %>% arrange(groups,r_pvalues) %>% group_by(groups) %>%
     summarise(F=list(presorted_grenander(r_pvalues,quiet=quiet)))
   grenander_list <-  grenander_list$F
-
   #set up LP
   nconstraints_per_bin <- sapply(grenander_list, function(x) x$length)
+  messsage(paste("nconstraints_per_bin = ",nconstraints_per_bin))
+
   nconstraints <- sum(nconstraints_per_bin)
   i_yi <- 1:nconstraints
   j_yi <- rep(1:nbins,  times=nconstraints_per_bin)

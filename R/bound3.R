@@ -101,9 +101,10 @@ bound3 <- function(Sigma,m=NULL,m_block=100){
            cond2= (k*(k+1)*beta1-(2*k+1)*beta2+beta3>=0),
            cond3= (k*(k+1)-(2*k+1+k*(k+1))*beta1+(2*k+2)*beta2-beta3 >=0),
            allcond= cond1 & cond2 & cond3,
-           bound2=pmin(1,1-( k*(k+1)*(1-beta1) + (2*k+1)*(beta2-beta1) -(beta3-beta2) )/(k^2+k) ),
-           bound=ifelse(allcond,bound2,bound1)  )%>%
-  #          bound=pmin(1,S1-S2+S3,S1-(2*m-3)*S2/choose(m,2)+(m-2)*S3/choose(m,3) )) %>%
+           #bound2=pmin(1,1-( k*(k+1)*(1-beta1) + (2*k+1)*(beta2-beta1) -(beta3-beta2) )/(k^2+k) ),
+           bound2=pmin(1,( k*(k+1)*beta1 + -(2*k+1)*(beta2-beta1) +(beta3-beta2) )/(k^2+k) ),
+
+                      bound=ifelse(allcond,bound2,bound1)  )%>%
   select(alpha,bound)
   bounds <- add_row(bounds,alpha=c(0,1),bound=c(0,1))
   return(approxfun(bounds$alpha,bounds$bound,method = "linear"))
